@@ -2,18 +2,25 @@ import csv
 import json
 
 PATHS_TO_CSV = {
-    'ads': 'ads.csv',
-    'categories': 'categories.csv'
+    'ad': 'ad.csv',
+    'category': 'category.csv',
+    'location': 'location.csv',
+    'user': 'user.csv'
 }
 
 PATHS_TO_JSON = {
-    'ads': 'ads.json',
-    'categories': 'categories.json'
+    'ad': 'ad.json',
+    'category': 'category.json',
+    'location': 'location.json',
+    'user': 'user.json',
 }
 
 MODELS = {
-    'ads': 'main_page.ad',
-    'categories': 'main_page.category'
+    'ad': 'ads.ad',
+    'category': 'ads.category',
+    'location': 'users.location',
+    'user': 'users.user'
+
 }
 
 
@@ -26,6 +33,9 @@ def convert_data(path_to_csv, model):
                     row['is_published'] = True
                 else:
                     row['is_published'] = False
+            if 'location_id' in row:
+                row['location'] = [row['location_id']]
+                del row['location_id']
             result.append({"model": model, "fields": row})
     return result
 
