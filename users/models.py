@@ -11,7 +11,7 @@ class Location(models.Model):
         return self.name
 
     class Meta:
-        verbose_name ="Название"
+        verbose_name = "Название"
         verbose_name_plural = "Названия"
 
 
@@ -34,5 +34,5 @@ class User(models.Model):
         return self.username
 
     class Meta:
-        verbose_name ="Имя пользователя"
+        verbose_name = "Имя пользователя"
         verbose_name_plural = "Имена пользователей"

@@ -6,46 +6,48 @@ from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
+from rest_framework.generics import ListAPIView, CreateAPIView, RetrieveAPIView
 
 from users.models import User, Location
 from task_27 import settings
+from users.serializers import UserListSerializer, LocationListSerializer
 
 
-class UserListView(ListView):
+class UserListView(ListAPIView):
     queryset = User.objects.annotate(total_ads=Count('ad', filter=Q(ad__is_published=True))).order_by('username')
-    model = User
+    serializer_class = UserListSerializer
 
-    def get(self, request, *args, **kwargs):
-        super().get(request, *args, **kwargs)
-
-        self.object_list = self.object_list.order_by("first_name")
-
-        paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
-        page_number = request.GET.get("page", 1)
-        page_obj = paginator.get_page(page_number)
-
-        response = []
-
-        for user in page_obj:
-            response.append({
-                "id": user.id,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "username": user.username,
-                "password": user.password,
-                "role": user.role,
-                "age": user.age,
-                "location": [loc.name for loc in user.location.all()],
-                "total_ads": user.total_ads
-            })
-
-        result = {
-            "items": response,
-            "num_page": page_number,
-            "total": paginator.count
-        }
-
-        return JsonResponse(result, safe=False)
+    # def get(self, request, *args, **kwargs):
+    #     super().get(request, *args, **kwargs)
+    #
+    #     self.object_list = self.object_list.order_by("first_name")
+    #
+    #     paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
+    #     page_number = request.GET.get("page", 1)
+    #     page_obj = paginator.get_page(page_number)
+    #
+    #     response = []
+    #
+    #     for user in page_obj:
+    #         response.append({
+    #             "id": user.id,
+    #             "first_name": user.first_name,
+    #             "last_name": user.last_name,
+    #             "username": user.username,
+    #             "password": user.password,
+    #             "role": user.role,
+    #             "age": user.age,
+    #             "location": [loc.name for loc in user.location.all()],
+    #             "total_ads": user.total_ads
+    #         })
+    #
+    #     result = {
+    #         "items": response,
+    #         "num_page": page_number,
+    #         "total": paginator.count
+    #     }
+    #
+    #     return JsonResponse(result, safe=False)
 
 
 class UserDetailView(DetailView):
@@ -69,32 +71,34 @@ class UserDetailView(DetailView):
             safe=False)
 
 
-@method_decorator(csrf_exempt, name='dispatch')
-class UserCreateView(CreateView):
-    model = User
-    fields = "__all__"
-
-    def post(self, request, *args, **kwargs):
-        user_data = json.loads(request.body)
-
-        locations = user_data.pop("location")
-
-        user = User.objects.create(**user_data)
-        for loc_name in locations:
-            loc, _ = Location.objects.get_or_create(name=loc_name)
-            user.location.add(loc)
-        user.save()
-
-        return JsonResponse({
-            "id": user.id,
-            "first_name": user.first_name,
-            "last_name": user.last_name,
-            "username": user.username,
-            "role": user.role,
-            "age": user.age,
-            "location": [loc.name for loc in user.location.all()]
-        },
-            safe=False)
+class UserCreateView(CreateAPIView):
+    pass
+# @method_decorator(csrf_exempt, name='dispatch')
+# class UserCreateView(CreateView):
+#     model = User
+#     fields = "__all__"
+#
+#     def post(self, request, *args, **kwargs):
+#         user_data = json.loads(request.body)
+#
+#         locations = user_data.pop("location")
+#
+#         user = User.objects.create(**user_data)
+#         for loc_name in locations:
+#             loc, _ = Location.objects.get_or_create(name=loc_name)
+#             user.location.add(loc)
+#         user.save()
+#
+#         return JsonResponse({
+#             "id": user.id,
+#             "first_name": user.first_name,
+#             "last_name": user.last_name,
+#             "username": user.username,
+#             "role": user.role,
+#             "age": user.age,
+#             "location": [loc.name for loc in user.location.all()]
+#         },
+#             safe=False)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -149,3 +153,13 @@ class UserDeleteView(DeleteView):
         super().delete(request, *args, **kwargs)
 
         return JsonResponse({"status": "ok"})
+
+
+class LocationListView(ListAPIView):
+    queryset = Location.objects.all()
+    serializer_class = LocationListSerializer
+
+
+class LocationDetailView(RetrieveAPIView):
+    queryset = Location.objects.all()
+    serializer_class = LocationListSerializer

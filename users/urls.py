@@ -8,5 +8,7 @@ urlpatterns = [
     path('user/create/', views.UserCreateView.as_view()),
     path('user/<int:pk>/update/', views.UserUpdateView.as_view()),
     path('user/<int:pk>/delete/', views.UserDeleteView.as_view()),
+    path('location/', views.LocationListView.as_view()),
+    path('location/<int:pk>/', views.LocationDetailView.as_view()),
 ]
 
