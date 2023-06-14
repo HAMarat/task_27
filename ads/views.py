@@ -34,11 +34,13 @@ class AdsListView(ListAPIView):
         if location:
             self.queryset = self.queryset.filter(author__location__name__icontains=location)
 
-        price_from = request.GET.get("price_from", 0)
-        price_to = request.GET.get("price_to", 99999)
+        price_from = request.GET.get("price_from", None)
+        if price_from:
+            self.queryset = self.queryset.filter(price__gte=price_from)
 
-        if price_from or price_to:
-            self.queryset = self.queryset.filter(price__range=(price_from, price_to))
+        price_to = request.GET.get("price_to", None)
+        if price_to:
+            self.queryset = self.queryset.filter(price__lte=price_to)
 
         return super().get(request, *args, **kwargs)
 
