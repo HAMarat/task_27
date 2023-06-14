@@ -1,6 +1,11 @@
 from django.urls import path
+from rest_framework import routers
 
 from users import views
+from users.views import LocationView
+
+router = routers.SimpleRouter()
+router.register("location", LocationView)
 
 urlpatterns = [
     path('user/', views.UserListView.as_view()),
@@ -8,7 +13,7 @@ urlpatterns = [
     path('user/create/', views.UserCreateView.as_view()),
     path('user/<int:pk>/update/', views.UserUpdateView.as_view()),
     path('user/<int:pk>/delete/', views.UserDeleteView.as_view()),
-    path('location/', views.LocationListView.as_view()),
-    path('location/<int:pk>/', views.LocationDetailView.as_view()),
 ]
+
+urlpatterns += router.urls
 

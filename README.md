@@ -2,7 +2,7 @@
 
 Для начала работы скопируйте репозиторий на локальную машину: с помощью команды в терминале
 
-- [task_28](https://github.com/HAMarat/course_work_5.git)
+- [task_27](https://github.com/HAMarat/course_work_5.git)
 
 Откройте склонированный репозиторий в PyCharm.
 
