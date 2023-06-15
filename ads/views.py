@@ -1,15 +1,17 @@
 import json
 
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
-from rest_framework.generics import ListAPIView, RetrieveAPIView, DestroyAPIView
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.viewsets import ModelViewSet
 
-from ads.models import Ad, Category, User
-from ads.serializers import AdSerializer
+from ads.models import Ad, Category, Selection
+from ads.permissions import IsOwner, IsStaff
+from ads.serializers import AdSerializer, SelectionSerializer, SelectionDetailSerializer, \
+    SelectionListSerializer, SelectionCreateUpdateSerializer, AdCreateUpdateSerializer
 
 
 class StartPageView(View):
@@ -17,11 +19,33 @@ class StartPageView(View):
         return JsonResponse({"status": "ok"})
 
 
-class AdsListView(ListAPIView):
+class AdViewSet(ModelViewSet):
     queryset = Ad.objects.all()
-    serializer_class = AdSerializer
 
-    def get(self, request, *args, **kwargs):
+    default_serializer = AdSerializer
+    serializers = {
+        "create": AdCreateUpdateSerializer,
+        "update": AdCreateUpdateSerializer,
+        "partial_update": AdCreateUpdateSerializer,
+
+    }
+
+    default_permission = [AllowAny]
+    permissions = {
+        "retrieve": [IsAuthenticated],
+        "create": [IsAuthenticated],
+        "update": [IsAuthenticated, IsOwner | IsStaff],
+        "partial_update": [IsAuthenticated, IsOwner | IsStaff],
+        "destroy": [IsAuthenticated, IsOwner | IsStaff]
+    }
+
+    def get_permissions(self):
+        return [permission() for permission in self.permissions.get(self.action, self.default_permission)]
+
+    def get_serializer_class(self):
+        return self.serializers.get(self.action, self.default_serializer)
+
+    def list(self, request, *args, **kwargs):
         cat = request.GET.get("cat", None)
         if cat:
             self.queryset = self.queryset.filter(category__in=cat)
@@ -42,84 +66,7 @@ class AdsListView(ListAPIView):
         if price_to:
             self.queryset = self.queryset.filter(price__lte=price_to)
 
-        return super().get(request, *args, **kwargs)
-
-
-class AdDetailView(RetrieveAPIView):
-    queryset = Ad.objects.all()
-    serializer_class = AdSerializer
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class AdCreateView(CreateView):
-    model = Ad
-    fields = "__all__"
-
-    def post(self, request, *args, **kwargs):
-        ad_data = json.loads(request.body)
-
-        author = get_object_or_404(User, username=ad_data.pop('author'))
-        category = get_object_or_404(Category, name=ad_data.pop('category'))
-
-        ad = Ad.objects.create(author=author, category=category, **ad_data)
-
-        return JsonResponse({
-            'id': ad.id,
-            'name': ad.name,
-            'author': ad.author.username,
-            'price': ad.price,
-            'description': ad.description,
-            'address': ad.address,
-            'is_published': ad.is_published,
-            'category': ad.category.name
-        }, safe=False)
-
-
-@method_decorator(csrf_exempt, name='dispatch')
-class AdUpdateView(UpdateView):
-    model = Ad
-    fields = "__all__"
-
-    def patch(self, request, *args, **kwargs):
-        super().post(request, *args, **kwargs)
-
-        ad_data = json.loads(request.body)
-
-        if "name" in ad_data:
-            self.object.name = ad_data["name"]
-        if "author" in ad_data:
-            self.object.author = get_object_or_404(User, username=ad_data.pop('author'))
-        if "price" in ad_data:
-            self.object.price = ad_data["price"]
-        if "description" in ad_data:
-            self.object.description = ad_data["description"]
-        if "address" in ad_data:
-            self.object.address = ad_data["address"]
-        if "is_published" in ad_data:
-            self.object.is_published = ad_data["is_published"]
-        if "image" in ad_data:
-            self.object.image = ad_data["image"]
-        if "category" in ad_data:
-            self.object.category = get_object_or_404(Category, name=ad_data.pop('category'))
-
-        self.object.save()
-
-        return JsonResponse({
-            'id': self.object.id,
-            'name': self.object.name,
-            'author': self.object.author.username,
-            'price': self.object.price,
-            'description': self.object.description,
-            'address': self.object.address,
-            'is_published': self.object.is_published,
-            'image': self.object.image.url if self.object.image.url else None,
-            'category': self.object.category.name
-        }, safe=False)
-
-
-class AdDeleteView(DestroyAPIView):
-    queryset = Ad.objects.all()
-    serializer_class = AdSerializer
+        return super().list(request, *args, **kwargs)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -219,3 +166,31 @@ class CategoryDeleteView(DeleteView):
         super().delete(request, *args, **kwargs)
 
         return JsonResponse({'status': 'ok'}, status=200)
+
+
+class SelectionViewSet(ModelViewSet):
+    queryset = Selection.objects.all()
+
+    default_serializer = SelectionSerializer
+    serializers = {
+        "list": SelectionListSerializer,
+        "retrieve": SelectionDetailSerializer,
+        "create": SelectionCreateUpdateSerializer,
+        "update": SelectionCreateUpdateSerializer,
+        "partial_update": SelectionCreateUpdateSerializer,
+    }
+
+    default_permission = [AllowAny]
+    permissions = {
+        "retrieve": [IsAuthenticated],
+        "create": [IsAuthenticated],
+        "update": [IsAuthenticated, IsOwner],
+        "partial_update": [IsAuthenticated, IsOwner],
+        "destroy": [IsAuthenticated, IsOwner],
+    }
+
+    def get_permissions(self):
+        return [permission() for permission in self.permissions.get(self.action, self.default_permission)]
+
+    def get_serializer_class(self):
+        return self.serializers.get(self.action, self.default_serializer)

@@ -1,3 +1,4 @@
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import TextChoices
 
@@ -21,7 +22,7 @@ class UserRole(TextChoices):
     ADMIN = "admin", "Администратор"
 
 
-class User(models.Model):
+class User(AbstractUser):
     first_name = models.CharField(max_length=40, null=True)
     last_name = models.CharField(max_length=40, null=True)
     username = models.CharField(max_length=40, unique=True, null=True)

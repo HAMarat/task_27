@@ -23,6 +23,15 @@
   
 - установка DRF:
   - `poetry add djangorestframework`
+
+- установка Simple JWT:
+  - `poetry djangorestframework-simplejwt`
+
+- создание админа (суперпользователя)
+  - `python .\manage.py createsuperuser`
+
+- создание django приложения
+  - `python .\manage.py startapp [app_name]`
   
 ## Создание и запуск контейнера docker с postgres
 
