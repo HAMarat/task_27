@@ -32,6 +32,15 @@
 
 - создание django приложения
   - `python .\manage.py startapp [app_name]`
+
+- создать миграции 
+  - `python .\manage.py makemigrations`
+
+- применить миграции
+  - `python .\manage.py migrete`
+
+- показать примененные миграции
+  - `python .\manage.py showmigrations`
   
 ## Создание и запуск контейнера docker с postgres
 

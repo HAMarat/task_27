@@ -11,7 +11,7 @@ from rest_framework.viewsets import ModelViewSet
 from ads.models import Ad, Category, Selection
 from ads.permissions import IsOwner, IsStaff
 from ads.serializers import AdSerializer, SelectionSerializer, SelectionDetailSerializer, \
-    SelectionListSerializer, SelectionCreateUpdateSerializer, AdCreateUpdateSerializer
+    SelectionListSerializer, SelectionCreateUpdateSerializer, AdCreateSerializer
 
 
 class StartPageView(View):
@@ -24,10 +24,7 @@ class AdViewSet(ModelViewSet):
 
     default_serializer = AdSerializer
     serializers = {
-        "create": AdCreateUpdateSerializer,
-        "update": AdCreateUpdateSerializer,
-        "partial_update": AdCreateUpdateSerializer,
-
+        "create": AdCreateSerializer,
     }
 
     default_permission = [AllowAny]
